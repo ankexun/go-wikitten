@@ -1,3 +1,26 @@
+# vscode
+.vscode
+
+# vim
+*.swp
+
+# Windows:
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# golang
+bin
+pkg
+src/vendor
+src/github.com
+src/golang.org
+src/gopkg.in
+src/honnef.co
+src/debug
+src/assets/upload
+src/upload
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

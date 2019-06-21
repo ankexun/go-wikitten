@@ -6,7 +6,7 @@ import (
 
 func InitRouter() *gin.Engine {
 	//发布编译时设置release模式
-	//gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
 	// 设置静态资源

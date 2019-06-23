@@ -8,6 +8,7 @@ import (
 	"github.com/lxmgo/config"
 )
 
+//全局变量
 var Title, Default, Dir string
 var UseDarkTheme, UseWikittenLogo bool
 
@@ -25,6 +26,7 @@ func main() {
 	UseDarkTheme, _ = config.Bool("use_dark_theme")
 	UseWikittenLogo, _ = config.Bool("use_wikitten_logo")
 
+	//设置缺省目录与首页
 	if Dir == "" {
 		Dir = "myDoc"
 	}
@@ -44,7 +46,6 @@ func main() {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
-	// router.Run(host + ":" + port)
 
 	watch, _ := fsnotify.NewWatcher()
 

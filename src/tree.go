@@ -19,6 +19,7 @@ type Tree struct {
 	IsDir bool
 }
 
+// 全局变量
 var Data []Tree
 
 // 判断目录是否存在
@@ -82,12 +83,16 @@ func (w *Watch) watchDir(dir string) {
 
 			}
 			log.Printf("监控 : %s\n", path)
+			//目录分隔统一转换成"/"
 			path = filepath.ToSlash(path)
+
 			Data = append(Data, Tree{path, true})
 
 		} else {
 			log.Printf("文件 : %s\n", path)
+			//目录分隔统一转换成"/"
 			path = filepath.ToSlash(path)
+
 			Data = append(Data, Tree{path, false})
 		}
 
@@ -119,6 +124,7 @@ func (w *Watch) watchDir(dir string) {
 							w.watch.Add(ev.Name)
 
 							log.Println("添加监控 : ", ev.Name)
+
 							name.IsDir = true
 						}
 						Data = append(Data, name)

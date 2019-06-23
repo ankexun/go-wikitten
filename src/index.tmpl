@@ -34,6 +34,7 @@
       <script src="static/js/jquery.min.js"></script>
       <script src="static/js/prettify.js"></script>
       <script src="static/js/codemirror.min.js"></script>
+      <script src="static/js/jquery.media.js"></script>
 </head>
 <body onload="prettyPrint()">
   <div id="main">
@@ -74,14 +75,6 @@
               }, 600);
           });
     {{end}}
-  </script>
-  <script>
-    var editor = CodeMirror.fromTextArea(myTextarea, {
-      mode: {{.lang}},
-      lineNumbers: true,
-      readOnly: true,
-      scrollbarStyle: null
-    });
   </script>
 </body>
 </html>

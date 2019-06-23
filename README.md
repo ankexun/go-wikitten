@@ -1,5 +1,5 @@
-# go-wikitten
-go-Wikitten 是用golang写的，没有数据库，没有插件的高仿wikitten的#、支持Markdown语法的Wiki知识管理系统
+﻿# go-wikitten
+go-Wikitten 是用golang写的，没有数据库，没有插件的高仿wikitten的、支持Markdown语法的Wiki知识管理系统
 
 ### 部署
 目前只做了windows x64的发布包,包里的文件如下:

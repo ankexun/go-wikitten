@@ -18,12 +18,12 @@ func InitRouter() *gin.Engine {
 	router.GET("/test", Test)
 
 	// 未知路由处理
-	router.NoRoute(func(context *gin.Context) {
-		context.String(404, "Not router")
+	router.NoRoute(func(c *gin.Context) {
+		c.String(404, "Not router")
 	})
 	// 未知调用方式
-	router.NoMethod(func(context *gin.Context) {
-		context.String(404, "Not method")
+	router.NoMethod(func(c *gin.Context) {
+		c.String(404, "Not method")
 	})
 
 	return router

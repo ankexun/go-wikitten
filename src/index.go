@@ -36,7 +36,10 @@ func Index(c *gin.Context) {
 
 // 测试一些前端代码用
 func Test(c *gin.Context) {
+	//对树状目录排序,注意全局变量Data
+	tree := sortData()
 	c.HTML(http.StatusOK, "test.tmpl", gin.H{
 		"title": "test",
+		"tree":  tree,
 	})
 }

@@ -23,3 +23,5 @@ go-Wikitten 是用golang写的，没有数据库，没有插件的高仿wikitten
 ### 使用
 windows下可以配合FTP使用. 
 
+### 遗留问题
+myDoc下的目录和文件增加、删除、更名后，需要重启wikitten

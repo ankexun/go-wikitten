@@ -15,6 +15,7 @@ func InitRouter() *gin.Engine {
 
 	router.LoadHTMLGlob("*.tmpl")
 	router.GET("/", Index)
+	router.POST("/", GetByName)
 	router.GET("/test", Test)
 
 	// 未知路由处理

@@ -5,152 +5,148 @@
             <i class="glyphicon glyphicon-remove"></i>
         </a>
     </div>
-    <ul class="unstyled" id="tree-filter-results"></ul>
-<!-- <ul class="unstyled" id="tree">
-    {{range $i, $v := .tree}}
-        <li>{{$v}}</li>
-    {{end}}
-</ul> -->
+    <ul class="ztree" id="tree-filter-results"></ul>
+    <!-- <ul class="unstyled" id="tree"></ul> -->
+    <ul id="treeDemo" class="ztree"></ul>
 
-    <ul class="unstyled" id="tree">
-    </ul>
     <script>
-        // var zTreeObj;
-        // // zTree 的参数配置，深入使用请参考 API 文档（setting 配置详解）
-        // var setting = {
-        //     data: {
-        //         key: {
-        //             name: "Name"
-        //         }
-        //     }
-        // };
-        // // zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
+        var setting = {
+            data: {
+               key: {
+                isParent: "isDir",
+               }
+            },
+            callback: {
+                beforeClick: getCurrentNode,
+                // onClick: zTreeOnClick
+            },
+            // view: {
+			// 	addDiyDom: addDiyDom
+		    // }
+       };
 
-        //处理树状菜单数据
+        /**标准数据格式*/
         let data = {{.tree}}
-        let ptree = []
+        reSort(data)
+        deleteEmptyProperty(data)
         
-        function sonsTree(obj, arr) {
-            var children = new Array();
-            for (var i = 0; i < arr.length; i++) {
-                if (arr[i].pId == obj.id) {  //pid等于加入数组
-                    arr[i].Name = arr[i].Name.split(obj.Name+'/')[1]
-                    sonsTree(arr[i], arr);//递归出子元素
-                    children.push(arr[i]);
+        $(document).ready(function(){
+            /**为容器初始化数据*/
+            var treeObj = $.fn.zTree.init($("#treeDemo"), setting, data);
+            // 默认展开第一级
+            var nodes = treeObj.getNodes();
+            if (nodes.length>0) {
+                for(var i=0;i<nodes.length;i++){
+                treeObj.expandNode(nodes[i], true, false, false);
                 }
             }
-            if (children.length > 0) {
-                obj.children = children;
-            }
-            return obj;
-        }
+        });
 
-        let fristTitle = ''//最外层文件夹名称
-        let outside = [] //目录
-        let obj = {
-            Name: null,
-            IsDir: true,
-            children: []
-        }
-        data.forEach( (e,index) => {
-            e.id = index
-            if ( e.Name.indexOf('/') == -1 ) {//最外层文件夹名称
-                fristTitle = e.Name
-            }
-            else {
-                e.Name = e.Name.split('myDoc/')[1]
-                obj.children.push(e)
-            };
-            if ( e.IsDir ) {
-                if ( e.Name != fristTitle ) {
-                    outside.push(e)
+// function addDiyDom(treeId, treeNode) {
+//     var spaceWidth = 5;
+//     var switchObj = $("#" + treeNode.tId + "_switch"),
+//     icoObj = $("#" + treeNode.tId + "_ico");
+//     switchObj.remove();
+//     icoObj.parent().before(switchObj);
+//     var spantxt = $("#" + treeNode.tId + "_span").html();
+//     if (spantxt.length > 19) {
+//         spantxt = spantxt.substring(0, 29) + "...";
+//         $("#" + treeNode.tId + "_span").html(spantxt);
+//     }
+// }
+
+function getCurrentNode(treeId, treeNode) {
+       curNode = treeNode;
+       zTreeOnClick(curNode);
+    }
+function zTreeOnClick(treeNode) {
+    $.ajax({
+       type: "POST",
+       url : "/",
+       data: {
+           name: treeNode.path,
+           isDir: treeNode.isDir
+       } ,
+       //请求成功
+       success : function(result) {
+                // console.log(result.content);
+                if (result.content != ""){
+                    $("#content .inner").html(result.content);
+                    // 解决code prettify不加载的问题
+                    prettyPrint();
                 }
-                
+            },
+            //请求失败，包含具体的错误信息
+            error : function(e){
+                console.log(e.status);
+                console.log(e.responseText);
             }
-        })
-        obj.Name = fristTitle
-        outside.forEach( (e,index) => {//目录
-            obj.children.forEach ( (ele,ind) => {
-                if ( ele.Name.indexOf(e.Name) != -1 && ele.IsDir == false ) {
-                    ele.pId = e.id
-                }
-            })
-        })
-        for (var i = 0; i < obj.children.length; i++) {
-            if (obj.children[i].pId == null) {//父元素
-                let o = sonsTree(obj.children[i], obj.children);
-                ptree.push(o);
-            }
-        }
+    });
+};
+
+// 递归删除空对象
+function deleteEmptyProperty(object){
+    for (var i in object) {
+        var value = object[i];
         
-        // var zNodes = ptree
-        // console.log(ptree)
-        // $(document).ready(function(){
-        //    zTreeObj = $.fn.zTree.init($("#tree"), setting, zNodes);
-        // });
-        let str = ''
-        for ( var i = 0; i < ptree.length; i++ ) {
-            if (ptree[i+1].Name.indexOf(ptree[i].Name) != -1){
-                ptree[i+1].Name = ptree[i+1].Name.split(ptree[i].Name)[1]
-                ptree[i].children = ptree[i+1]
-                ptree[i].hasMoreChild = true
-                ptree.splice(i+1,1)
-                break
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                if (value.length == 0) {
+                    delete object[i];
+                    // console.log('delete Array', i);
+                    continue;
+                }
+            }
+            deleteEmptyProperty(value);
+            if (isEmpty(value)) {
+                // console.log('isEmpty true', i, value);
+                delete object[i];
+                // console.log('delete a empty object');
+            }
+        } else {
+            if (value === '' || value === null || value === undefined) {
+                delete object[i];
+                // console.log('delete ', i);
+            } else {
+                // console.log('check ', i, value);
             }
         }
-        ptree.forEach( e => {
-            if ( !e.IsDir ) {
-                str += 
-                    '<li class="file"><a data-role="no" href="?name=' +e.Name+ '">' +e.Name+ '</a></li>'
-                    // '<li class="directory">' +
-                    //     '<a href="#" data-role="directory"><i class="glyphicon glyphicon-folder-open)"></i>&nbsp;' +e.Name+ '</a>' +
-                    // '</li>'
-                // '<div>'+
-                //     '<span>'+e.Name+'</span>'+
-                // '</div>'
-            }
-            else {
-                let childStr = ''
-                if ( e.hasMoreChild ) {
-                    if ( e.children ) {
-                        e.children.children.forEach ( ele => {
-                            childStr += 
-                                '<li class="file"><a href="?name=' +e.Name+ e.children.Name + '/' +ele.Name+ '">' +ele.Name+ '</a></li>'
-                        })     
-                    } 
-                    str += 
-                        '<li>'+
-                            '<a href="#" data-role="directory" name="'+e.Name+'"><i class="glyphicon glyphicon-folder-close"></i>&nbsp;' +e.Name+ '</a>' +
-                            '<ul>'+
-                                '<a href="#" data-role="directory" name="'+e.children.Name+'"><i class="glyphicon glyphicon-folder-close"></i>&nbsp;' +e.children.Name+ '</a>' +
-                                 '<ul>'+
-                                    childStr +
-                                '</ul>'+
-                            '</ul>'+
-                        '</li>' 
-                }
-                else {
-                    if ( e.children ) {
-                        e.children.forEach ( ele => {
-                            childStr += 
-                                '<li class="file"><a href="?name=' +e.Name+ '/' +ele.Name+ '">' +ele.Name+ '</a></li>'
-                        })     
-                    } 
-                    str += 
-                        '<li>'+
-                            '<a href="#" data-role="directory" name="'+e.Name+'"><i class="glyphicon glyphicon-folder-close"></i>&nbsp;' +e.Name+ '</a>' +
-                            '<ul>'+
-                                childStr +
-                            '</ul>'+
-                        '</li>' 
-                }
-                   
-            }  
-        })
-        $('#tree').html(str)
-    </script>
+    }
+}
 
-            
+function isEmpty(object) {
+    for (var name in object) {
+        return false;
+    }
+    return true;
+}
+
+// 排序,目录在前,文件在后
+function reSort(object){
+    let sortedDir = [];
+    let sortedFile = [];
+    for (var i in object) {
+        var value = object[i];
+        
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                value.forEach(element => {
+                    if (element.isDir) {
+                        sortedDir.push(element)
+                    } else {
+                        sortedFile.push(element)
+                    }
+                    if (element.hasOwnProperty('children')) {
+                        reSort(element)
+                    }
+                })
+            }
+        }
+    }
+    // 替换成排序后的children
+    object.children = sortedDir.concat(sortedFile)
+}
+</script>
 
 
     <script>
@@ -164,7 +160,7 @@
             var iconFolderOpenClass  = 'glyphicon glyphicon-folder-open',
                 iconFolderCloseClass = 'glyphicon glyphicon-folder-close',
                 // Handle live search/filtering:
-                tree             = $('#tree'),
+                tree             = $('#treeDemo'),
                 resultsTree      = $('#tree-filter-results')
                 filterInput      = $('#tree-filter-query'),
                 clearFilterInput = $('#tree-filter-clear-query'),

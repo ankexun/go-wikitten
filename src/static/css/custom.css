@@ -1,3 +1,8 @@
 /*
  *	Place your custom CSS styles here, they will override all existing styles
  */
+ 
+ /* 修正zTree图标错位问题*/
+ #sidebar li a, #sidebar li a:hover {
+    display: unset;
+ }  

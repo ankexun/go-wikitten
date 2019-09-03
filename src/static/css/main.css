@@ -1,4 +1,4 @@
-body {
+﻿body {
     background: #EBEEF1 url(../img/noise.png);
     font-size: 13px;
 }
@@ -140,7 +140,7 @@ form {
 #sidebar li a, #sidebar li a:hover {
     display: block;
     text-decoration: none;
-}
+}  
 .breadcrumb {
     background: none;
     margin-bottom: 0;
@@ -251,7 +251,7 @@ form {
 }
 #tree-filter-results li a:focus:before,
 #tree li a:focus:before {
-    content: "↪";
+    content: "?";
     float: left;
     margin-left: -13px;
     font-weight: bold;

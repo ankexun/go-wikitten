@@ -36,102 +36,161 @@
       <script src="static/js/codemirror.min.js"></script>
       <script src="static/js/jquery.ztree.core.min.js"></script>
       <SCRIPT LANGUAGE="JavaScript">
-        //处理树状菜单数据
-            let data = {{.tree}}
-            let ptree = []
-            
-            function sonsTree(obj, arr) {
-                var children = new Array();
-                for (var i = 0; i < arr.length; i++) {
-                    if (arr[i].pId == obj.id) {  //pid等于加入数组
-                        arr[i].Name = arr[i].Name.split(obj.Name+'/')[1]
-                        sonsTree(arr[i], arr);//递归出子元素
-                        children.push(arr[i]);
-                    }
-                }
-                if (children.length > 0) {
-                    obj.children = children;
-                }
-                return obj;
+       var setting = {
+           data: {
+               key: {
+                isParent: "isDir",
+               }
+           },
+           callback: {
+                beforeClick: getCurrentNode,
+                onClick: zTreeOnClick
             }
-    
-            let fristTitle = ''//最外层文件夹名称
-            let outside = [] //目录
-            let obj = {
-                Name: null,
-                IsDir: true,
-                children: []
+       };
+ 
+ /**标准数据格式*/
+var data = {{.tree}}
+reSort(data)
+deleteEmptyProperty(data)
+console.log(data)
+
+function getCurrentNode(treeId, treeNode) {
+       curNode = treeNode;
+       zTreeOnClick(curNode);
+    }
+function zTreeOnClick(treeNode) {
+    console.log(treeNode);
+    console.log(treeNode.path);
+    $.ajax({
+       type: "POST",
+       url : "/",
+       data: {
+           name: treeNode.path,
+           isDir: treeNode.isDir
+       } ,
+       //请求成功
+       success : function(result) {
+                console.log(result);
+            },
+            //请求失败，包含具体的错误信息
+            error : function(e){
+                console.log(e.status);
+                console.log(e.responseText);
             }
-            data.forEach( (e,index) => {
-                e.id = index
-                if ( e.Name.indexOf('/') == -1 ) {//最外层文件夹名称
-                    fristTitle = e.Name
-                }
-                else {
-                    e.Name = e.Name.split('myDoc/')[1]
-                    obj.children.push(e)
-                };
-                if ( e.IsDir ) {
-                    if ( e.Name != fristTitle ) {
-                        outside.push(e)
-                    }
-                    
-                }
-            })
-            obj.Name = fristTitle
-            outside.forEach( (e,index) => {//目录
-                obj.children.forEach ( (ele,ind) => {
-                    if ( ele.Name.indexOf(e.Name) != -1 && ele.IsDir == false ) {
-                        ele.pId = e.id
-                    }
-                })
-            })
-            for (var i = 0; i < obj.children.length; i++) {
-                if (obj.children[i].pId == null) {//父元素
-                    let o = sonsTree(obj.children[i], obj.children);
-                    ptree.push(o);
+    });
+};
+
+ var zNodes =[
+     { name:"父节点1 - 展开", open:true,
+         children: [
+             { name:"父节点11 - 折叠",
+                 children: [
+                     { name:"叶子节点111"},
+                     { name:"叶子节点112"},
+                     { name:"叶子节点113"},
+                     { name:"叶子节点114"}
+                 ]},
+             { name:"父节点12 - 折叠",isParent:true,
+                 children: [
+                     { name:"叶子节点121"},
+                     { name:"叶子节点122"},
+                     { name:"叶子节点123"},
+                     { name:"叶子节点124"}
+                 ]},
+             { name:"父节点13 - 没有子节点", isParent:true}
+         ]},
+     { name:"父节点2 - 折叠",
+         children: [
+             { name:"父节点21 - 展开", open:true,
+                 children: [
+                     { name:"叶子节点211"},
+                     { name:"叶子节点212"},
+                     { name:"叶子节点213"},
+                     { name:"叶子节点214"}
+                 ]},
+             { name:"父节点22 - 折叠",
+                 children: [
+                     { name:"叶子节点221"},
+                     { name:"叶子节点222"},
+                     { name:"叶子节点223"},
+                     { name:"叶子节点224"}
+                 ]},
+         ]},
+     { name:"父节点3 - 没有子节点", isParent:true}
+ ];
+
+ $(document).ready(function(){
+     /**为容器初始化数据*/
+     $.fn.zTree.init($("#treeDemo"), setting, data);
+ });
+
+// 递归删除空对象
+function deleteEmptyProperty(object){
+    for (var i in object) {
+        var value = object[i];
+        
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                if (value.length == 0) {
+                    delete object[i];
+                    // console.log('delete Array', i);
+                    continue;
                 }
             }
-            for ( var i = 0; i < ptree.length; i++ ) {
-            if (ptree[i+1].Name.indexOf(ptree[i].Name) != -1){
-                ptree[i+1].Name = ptree[i+1].Name.split(ptree[i].Name)[1]
-                ptree[i].children = ptree[i+1]
-                ptree[i].hasMoreChild = true
-                ptree.splice(i+1,1)
-                break
+            deleteEmptyProperty(value);
+            if (isEmpty(value)) {
+                // console.log('isEmpty true', i, value);
+                delete object[i];
+                // console.log('delete a empty object');
+            }
+        } else {
+            if (value === '' || value === null || value === undefined) {
+                delete object[i];
+                // console.log('delete ', i);
+            } else {
+                // console.log('check ', i, value);
             }
         }
-                
-        var zTreeObj;
-        // zTree 的参数配置，深入使用请参考 API 文档（setting 配置详解）
-        var setting = {
-            view: {
-        			  dblClickExpand: false
-        			  },
-            data: {
-                key: {
-                    name: "Name"
-                },
-                simpleData: {  
-                    enable: true,
-                }
-            },
-            callback:{
-                onClick: onNodeClick   
+    }
+}
+
+function isEmpty(object) {
+    for (var name in object) {
+        return false;
+    }
+    return true;
+}
+
+// 排序,目录在前,文件在后
+function reSort(object){
+    let sortedDir = [];
+    let sortedFile = [];
+    for (var i in object) {
+        var value = object[i];
+        
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                value.forEach(element => {
+                    if (element.isDir) {
+                        sortedDir.push(element)
+                    } else {
+                        sortedFile.push(element)
+                    }
+                    if (element.hasOwnProperty('children')) {
+                        reSort(element)
+                    }
+                })
             }
-        };
-        function onNodeClick(e,treeId, treeNode) { 
-            // var zTree = $.fn.zTree.getZTreeObj("#treeDemo");  
-            zTreeObj.expandNode(treeNode);  
-        };
-        // zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
-        var zNodes = ptree
-        $(document).ready(function(){
-           zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
-        });
-       </SCRIPT>
-</head>
-<body>
-    <div><ul id="treeDemo" class="ztree"></ul></div>
-</body>
+        }
+    }
+    // 替换成排序后的children
+    object.children = sortedDir.concat(sortedFile)
+}
+</script>
+    </head>
+    <body>
+        <div class="zTreeDemoBackground left">
+            <ul id="treeDemo" class="ztree"></ul>
+        </div>
+    </body>
 </html>

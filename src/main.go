@@ -5,34 +5,32 @@ import (
 	"net/http"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/lxmgo/config"
+	"github.com/go-ini/ini"
 )
 
 //全局变量
-var Title, Default, Dir string
-var UseDarkTheme, UseWikittenLogo bool
+var (
+	Config                        *ini.File
+	Title, Default, Dir           string
+	UseDarkTheme, UseWikittenLogo bool
+	JsonData                      interface{}
+)
 
 func main() {
 	// 读取config.ini的配置
-	config, err := config.NewConfig("config.ini")
+	var err error
+	Config, err = ini.Load("config.ini")
 	if err != nil {
-		log.Printf("读取config.ini配置文件错误: %v", err)
+		log.Fatalf("读取config.ini配置文件错误: %v", err)
 	}
-	host := config.String("host")
-	port := config.String("port")
-	Title = config.String("app_name")
-	Default = config.String("default_file")
-	Dir = config.String("library")
-	UseDarkTheme, _ = config.Bool("use_dark_theme")
-	UseWikittenLogo, _ = config.Bool("use_wikitten_logo")
 
-	//设置缺省目录与首页
-	if Dir == "" {
-		Dir = "myDoc"
-	}
-	if Default == "" {
-		Default = "index.md"
-	}
+	host := Config.Section("").Key("host").MustString("127.0.0.1")
+	port := Config.Section("").Key("port").MustString("8080")
+	Title = Config.Section("").Key("app_name").String()
+	Default = Config.Section("").Key("default_file").MustString("index.md")
+	Dir = Config.Section("").Key("library").MustString("myDoc")
+	UseDarkTheme = Config.Section("").Key("use_dark_theme").MustBool(false)
+	UseWikittenLogo = Config.Section("").Key("use_wikitten_logo").MustBool(false)
 
 	router := InitRouter()
 	srv := &http.Server{
@@ -53,11 +51,7 @@ func main() {
 		watch: watch,
 	}
 
-	if Dir == "" {
-		w.watchDir("myDoc")
-	} else {
-		w.watchDir(Dir)
-	}
+	JsonData = w.watchDir(Dir)
 
 	select {}
 }

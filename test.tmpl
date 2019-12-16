@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{.title}}</title>
+    <!-- <base href="<?php echo BASE_URL; ?>/"> -->
+
+    <link rel="shortcut icon" href="static/img/favicon.ico">
+
+      {{if .USE_DARK_THEME}}
+        <link rel="stylesheet" href="static/css/bootstrap_dark.min.css">
+        <link rel="stylesheet" href="static/css/dark/prettify-dark.css">
+        <link rel="stylesheet" href="static/css/codemirror.css">
+        <link rel="stylesheet" href="static/css/main_dark.css">
+        <link rel="stylesheet" href="static/css/dark/codemirror-tomorrow-night-bright.css">
+      {{else}}
+        <link rel="stylesheet" href="static/css/bootstrap.min.css">
+        <link rel="stylesheet" href="static/css/prettify.css">
+        <link rel="stylesheet" href="static/css/codemirror.css">
+        <link rel="stylesheet" href="static/css/main.css">
+      {{end}}
+    <link rel="stylesheet" href="static/css/zTreeStyle.css">
+		<link rel="stylesheet" href="static/css/custom.css">
+
+      <!-- <meta name="description" content="<?php echo e($page['description']) ?>">
+      <meta name="keywords" content="<?php echo e(join(',', $page['tags'])) ?>"> -->
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+      <!-- <?php if(!empty($page['author'])): ?>
+          <meta name="author" content="<?php echo e($page['author']) ?>">
+      <?php endif; ?> -->
+
+      <script src="static/js/jquery.min.js"></script>
+      <script src="static/js/prettify.js"></script>
+      <script src="static/js/codemirror.min.js"></script>
+      <script src="static/js/jquery.ztree.core.min.js"></script>
+      <SCRIPT LANGUAGE="JavaScript">
+       var setting = {
+           data: {
+               key: {
+                isParent: "isDir",
+               }
+           },
+           callback: {
+                beforeClick: getCurrentNode,
+                onClick: zTreeOnClick
+            }
+       };
+ 
+ /**标准数据格式*/
+var data = {{.tree}}
+reSort(data)
+deleteEmptyProperty(data)
+console.log(data)
+
+function getCurrentNode(treeId, treeNode) {
+       curNode = treeNode;
+       zTreeOnClick(curNode);
+    }
+function zTreeOnClick(treeNode) {
+    console.log(treeNode);
+    console.log(treeNode.path);
+    $.ajax({
+       type: "POST",
+       url : "/",
+       data: {
+           name: treeNode.path,
+           isDir: treeNode.isDir
+       } ,
+       //请求成功
+       success : function(result) {
+                console.log(result);
+            },
+            //请求失败，包含具体的错误信息
+            error : function(e){
+                console.log(e.status);
+                console.log(e.responseText);
+            }
+    });
+};
+
+ var zNodes =[
+     { name:"父节点1 - 展开", open:true,
+         children: [
+             { name:"父节点11 - 折叠",
+                 children: [
+                     { name:"叶子节点111"},
+                     { name:"叶子节点112"},
+                     { name:"叶子节点113"},
+                     { name:"叶子节点114"}
+                 ]},
+             { name:"父节点12 - 折叠",isParent:true,
+                 children: [
+                     { name:"叶子节点121"},
+                     { name:"叶子节点122"},
+                     { name:"叶子节点123"},
+                     { name:"叶子节点124"}
+                 ]},
+             { name:"父节点13 - 没有子节点", isParent:true}
+         ]},
+     { name:"父节点2 - 折叠",
+         children: [
+             { name:"父节点21 - 展开", open:true,
+                 children: [
+                     { name:"叶子节点211"},
+                     { name:"叶子节点212"},
+                     { name:"叶子节点213"},
+                     { name:"叶子节点214"}
+                 ]},
+             { name:"父节点22 - 折叠",
+                 children: [
+                     { name:"叶子节点221"},
+                     { name:"叶子节点222"},
+                     { name:"叶子节点223"},
+                     { name:"叶子节点224"}
+                 ]},
+         ]},
+     { name:"父节点3 - 没有子节点", isParent:true}
+ ];
+
+ $(document).ready(function(){
+     /**为容器初始化数据*/
+     $.fn.zTree.init($("#treeDemo"), setting, data);
+ });
+
+// 递归删除空对象
+function deleteEmptyProperty(object){
+    for (var i in object) {
+        var value = object[i];
+        
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                if (value.length == 0) {
+                    delete object[i];
+                    // console.log('delete Array', i);
+                    continue;
+                }
+            }
+            deleteEmptyProperty(value);
+            if (isEmpty(value)) {
+                // console.log('isEmpty true', i, value);
+                delete object[i];
+                // console.log('delete a empty object');
+            }
+        } else {
+            if (value === '' || value === null || value === undefined) {
+                delete object[i];
+                // console.log('delete ', i);
+            } else {
+                // console.log('check ', i, value);
+            }
+        }
+    }
+}
+
+function isEmpty(object) {
+    for (var name in object) {
+        return false;
+    }
+    return true;
+}
+
+// 排序,目录在前,文件在后
+function reSort(object){
+    let sortedDir = [];
+    let sortedFile = [];
+    for (var i in object) {
+        var value = object[i];
+        
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                value.forEach(element => {
+                    if (element.isDir) {
+                        sortedDir.push(element)
+                    } else {
+                        sortedFile.push(element)
+                    }
+                    if (element.hasOwnProperty('children')) {
+                        reSort(element)
+                    }
+                })
+            }
+        }
+    }
+    // 替换成排序后的children
+    object.children = sortedDir.concat(sortedFile)
+}
+</script>
+    </head>
+    <body>
+        <div class="zTreeDemoBackground left">
+            <ul id="treeDemo" class="ztree"></ul>
+        </div>
+    </body>
+</html>
